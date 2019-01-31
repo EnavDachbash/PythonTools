@@ -19,5 +19,8 @@ def get_token():
 # Initialize the client using TLS
 client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=get_token())
 
+# set the secret to read
+path2secret = input('Please etner the secret to read, omit the secret/ prefix: ')
+
 # Read the secret:
-print(client.read('secret/aws/main/KMS-terraform'))
+print(client.read(path2secret))
