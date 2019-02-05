@@ -7,6 +7,7 @@ __creation_date__ = '31/01/19'
     This script will list all secrets in a certain mount. """
 
 import os
+import sys
 import hvac
 import urllib3
 
@@ -25,6 +26,14 @@ def get_token():
         return token
 
 
+# Initialize the client using TLS
+os.environ["VAULT_TOKEN"] = get_token()
+client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["VAULT_TOKEN"], verify=False)
+
+# ================== END GLOBAL ================== #
+
+
+# This function will determine the mount's version.
 def get_mount_version(mount):
     secret_backend_config=client.sys.read_mount_configuration(mount)
     if 'options' in secret_backend_config.keys():
@@ -35,14 +44,8 @@ def get_mount_version(mount):
         print('mount version is 1')
     return secret_version
 
-# Initialize the client using TLS
-os.environ["VAULT_TOKEN"] = get_token()
-client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["VAULT_TOKEN"], verify=False)
 
-# ================== END GLOBAL ================== #
-
-
-# This function will list all secrets in mount
+# This function will list all secrets in mount.
 def list_secrets_in_path(mount_version, mount, dir_in_mount, final_secrets_list):
     if '1' in mount_version:
         objects_in_path = client.secrets.kv.v1.list_secrets(path=dir_in_mount, mount_point=mount)['data']['keys']
