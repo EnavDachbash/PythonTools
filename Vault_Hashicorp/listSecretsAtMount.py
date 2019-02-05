@@ -57,7 +57,7 @@ def main():
     mount_version = get_mount_version(source_mount)
     final_secrets_list = list()
     original_mount_secrets = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
-    print(original_mount_secrets)
+    print(*original_mount_secrets, sep="\n")
 
 
 if __name__ == '__main__':
