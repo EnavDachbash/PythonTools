@@ -22,7 +22,6 @@ def get_token():
         f.close()
         return token
 
-
 # Initialize the client using TLS
 os.environ["VAULT_TOKEN"] = get_token()
 client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["VAULT_TOKEN"], verify=False)
@@ -30,15 +29,17 @@ client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["
 # ================== END GLOBAL ================== #
 
 
-def list_secrets_in_path(path, final_secrets_list):
-    # check the versioned path
-    objects_in_path = client.secrets.kv.v1.list_secrets(path=path)['data']['keys']
+def list_secrets_in_path(mount_version, source_mount, dir_in_mount, final_secrets_list):
+    if '1' in mount_version:
+        objects_in_path = client.secrets.kv.v1.list_secrets(path=dir_in_mount, mount_point=source_mount)['data']['keys']
+    else:
+        objects_in_path = client.secrets.kv.v2.list_secrets(path=dir_in_mount, mount_point=source_mount)['data']['keys']
     for object in objects_in_path:
-        abs_path = '{}/{}'.format(path, object)
+        abs_path = '{}/{}'.format(dir_in_mount, object)
         if object.endswith('/'):
-            list_secrets_in_path(abs_path.strip('/'), final_secrets_list)
+            list_secrets_in_path(mount_version, source_mount, abs_path.strip('/'), final_secrets_list)
         else:
-            final_secrets_list.append(abs_path)
+            final_secrets_list.append('{}/{}'.format(source_mount, abs_path.lstrip(('/'))))
     return final_secrets_list
 
 
@@ -53,14 +54,27 @@ def write_secret_to_new_mount(destination_mount, secret):
     return 'Now Writing {}/{}'.format(destination_mount, secret)
 
 
-def main():
-    source_mount = input("Enter the source mount, and omit the /secret prefix:   ")
-    destination_mount = input("Enter the destination mount, and omit the /secret prefix:   ")
-    final_secrets_list = list()
-    original_mount_secrets = list_secrets_in_path(source_mount, final_secrets_list)
+def get_mount_version(source_mount):
+    secret_backend_config=client.sys.read_mount_configuration(source_mount)
+    if 'options' in secret_backend_config.keys():
+        print('mount is v2')
+        secret_version='v2'
+    else:
+        secret_version='v1'
+        print('mount is v1')
+    return secret_version
 
-    for secret in original_mount_secrets:
-        write_secret_to_new_mount('{}/{}'.format(destination_mount, secret), read_secret_from_original_mount(secret))
+
+def main():
+    source_mount = input("Enter the source mount:   ")
+#    destination_mount = input("Enter the destination mount, and omit the /secret prefix:   ")
+    mount_version = get_mount_version(source_mount)
+    final_secrets_list = list()
+    original_mount_secrets = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
+    print(original_mount_secrets)
+
+#    for secret in original_mount_secrets:
+#        write_secret_to_new_mount('{}/{}'.format(destination_mount, secret), read_secret_from_original_mount(secret))
 
 
 
