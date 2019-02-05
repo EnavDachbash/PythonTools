@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-""" Be sure to log into vault before running this script """
+
+__author__ = 'Enav Hidekel <enav.hidekel@gmail.com>'
+__creation_date__ = '31/01/19'
+
+""" Be sure to log into vault before running this script! 
+    This script will read all secrets in <source_mount> and
+    write them to <destination_mount>. """
+
 import os
 import sys
 import hvac
 import urllib3
-
-__author__ = 'Enav Hidekel <enav.hidekel@gmail.com>'
-__creation_date__ = '31/01/19'
 
 urllib3.disable_warnings()
 
@@ -67,11 +71,11 @@ def get_mount_version(source_mount):
 
 def main():
     source_mount = input("Enter the source mount:   ")
-#    destination_mount = input("Enter the destination mount, and omit the /secret prefix:   ")
+    destination_mount = input("Enter the destination mount:   ")
     mount_version = get_mount_version(source_mount)
     final_secrets_list = list()
     original_mount_secrets = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
-    print(original_mount_secrets)
+    print(*original_mount_secrets, sep='\n')
 
 #    for secret in original_mount_secrets:
 #        write_secret_to_new_mount('{}/{}'.format(destination_mount, secret), read_secret_from_original_mount(secret))
