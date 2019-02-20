@@ -68,11 +68,9 @@ def read_secret_from_original_mount(mount_version, source_mount, secret):
     return read_secret_result
 
 
-def write_secret_to_new_mount(destination_mount, secret, source_mount, mount_version, content):
-    print('Writing {} to {}/{}'.format(secret, destination_mount, source_mount))
+def write_secret_to_new_mount(destination_mount, secret, mount_version, content):
     if '1' in mount_version:
-        client.secrets.kv.v1.create_or_update_secret(mount_point=source_mount, path=secret, secret=content)
-        print('success')
+        client.secrets.kv.v1.create_or_update_secret(mount_point=destination_mount, path=secret, secret=content)
     else:
         client.secrets.kv.v2.create_or_update_secret(mount_point=destination_mount, path=secret, secret=content)
     return 'Now Writing {}/{}'.format(destination_mount, secret)
@@ -95,8 +93,7 @@ def main():
     destination_mount = init_destination_mount(source_mount, mount_version)
     for secret in secrets_list:
         content = read_secret_from_original_mount(mount_version, source_mount, secret)
-        write_secret_to_new_mount(destination_mount, secret, source_mount, mount_version, content), read_secret_from_original_mount(mount_version, source_mount, secret)
-#        write_secret_to_new_mount('{}/{}'.format(destination_mount, secret), read_secret_from_original_mount(mount_version, source_mount, secret))
+        write_secret_to_new_mount(destination_mount, secret, mount_version, content)
 
 
 if __name__ == '__main__':
