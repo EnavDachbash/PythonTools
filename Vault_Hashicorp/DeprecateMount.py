@@ -12,8 +12,6 @@ import sys
 import hvac
 import urllib3
 
-urllib3.disable_warnings()
-
 
 def get_token():
     try:
@@ -26,7 +24,9 @@ def get_token():
         f.close()
         return token
 
+
 # Initialize the client using TLS
+urllib3.disable_warnings()
 os.environ["VAULT_TOKEN"] = get_token()
 client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["VAULT_TOKEN"], verify=False)
 
