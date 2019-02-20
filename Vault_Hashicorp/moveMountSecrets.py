@@ -74,24 +74,28 @@ def write_secret_to_new_mount(destination_mount, secret, source_mount, mount_ver
         client.secrets.kv.v1.create_or_update_secret(mount_point=source_mount, path=secret, secret=content)
         print('success')
     else:
-        client.secrets.kv.v2.read_secret_version(mount_point=source_mount, path=secret)['data']['data']
-
-client.secrets.kv.v1.create_or_update_secret(path=destination_mount, secret=secret)
+        client.secrets.kv.v2.create_or_update_secret(mount_point=destination_mount, path=secret, secret=content)
     return 'Now Writing {}/{}'.format(destination_mount, secret)
 
 
+def init_destination_mount(source_mount, mount_version):
+    destination_mount = 'deprecated/{}'.format(source_mount)
+    client.sys.enable_secrets_engine(backend_type='kv', path=destination_mount, options={
+        "version": mount_version
+    })
+    print('Destination Mount is: {}'.format(destination_mount))
+    return destination_mount
+
+
 def main():
-    source_mount = input("Enter the source mount:   ")
-    destination_mount = input("Enter the destination mount:   ")
+    source_mount = input("Enter the source mount: ")
     mount_version = get_mount_version(source_mount)
     final_secrets_list = list()
     secrets_list = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
-#    check here:
-#    print(*original_mount_secrets, sep='\n')
+    destination_mount = init_destination_mount(source_mount, mount_version)
     for secret in secrets_list:
         content = read_secret_from_original_mount(mount_version, source_mount, secret)
         write_secret_to_new_mount(destination_mount, secret, source_mount, mount_version, content), read_secret_from_original_mount(mount_version, source_mount, secret)
-#        print(read_response)
 #        write_secret_to_new_mount('{}/{}'.format(destination_mount, secret), read_secret_from_original_mount(mount_version, source_mount, secret))
 
 
