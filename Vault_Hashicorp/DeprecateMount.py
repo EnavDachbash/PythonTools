@@ -77,11 +77,13 @@ def write_secret_to_new_mount(destination_mount, secret, mount_version, content)
 
 
 def init_destination_mount(source_mount, mount_version):
+    ver = mount_version[1]
+    print('Going to create new mount:  deprecated/{} of version: {}'.format(source_mount, ver))
     destination_mount = 'deprecated/{}'.format(source_mount)
     client.sys.enable_secrets_engine(backend_type='kv', path=destination_mount, options={
-        "version": mount_version
+        "version": ver
     })
-    print('Destination Mount is: {}'.format(destination_mount))
+    print('success')
     return destination_mount
 
 
@@ -91,6 +93,7 @@ def main():
     final_secrets_list = list()
     secrets_list = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
     destination_mount = init_destination_mount(source_mount, mount_version)
+    print('starting secrets copy')
     for secret in secrets_list:
         content = read_secret_from_original_mount(mount_version, source_mount, secret)
         write_secret_to_new_mount(destination_mount, secret, mount_version, content)

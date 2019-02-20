@@ -35,11 +35,11 @@ client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["
 
 
 def init_destination_mount(mount_name, mount_version):
-    client.sys.enable_secrets_engine(backend_type='kv', path=destination_mount, options={
+    client.sys.enable_secrets_engine(backend_type='kv', path=mount_name, options={
         "version": mount_version
     })
-    print('Destination Mount is: {}'.format(destination_mount))
-    return destination_mount
+    print('Destination Mount is: {}'.format(mount_name))
+    return mount_name
 
 
 def main():
