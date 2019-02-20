@@ -33,31 +33,6 @@ client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["
 # ================== END GLOBAL ================== #
 
 
-def list_secrets_in_path(mount_version, source_mount, dir_in_mount, final_secrets_list):
-    if '1' in mount_version:
-        objects_in_path = client.secrets.kv.v1.list_secrets(path=dir_in_mount, mount_point=source_mount)['data']['keys']
-    else:
-        objects_in_path = client.secrets.kv.v2.list_secrets(path=dir_in_mount, mount_point=source_mount)['data']['keys']
-    for object in objects_in_path:
-        abs_path = '{}/{}'.format(dir_in_mount, object)
-        if object.endswith('/'):
-            list_secrets_in_path(mount_version, source_mount, abs_path.strip('/'), final_secrets_list)
-        else:
-            final_secrets_list.append('{}/{}'.format(source_mount, abs_path.lstrip(('/'))))
-    return final_secrets_list
-
-
-def read_secret_from_original_mount(secret):
-    read_secret_result = client.secrets.kv.v1.read_secret(secret)
-    return read_secret_result['data']
-
-
-def write_secret_to_new_mount(destination_mount, secret):
-    print('Writing {} to {}'.format(secret, destination_mount))
-    client.secrets.kv.v1.create_or_update_secret(path=destination_mount, secret=secret)
-    return 'Now Writing {}/{}'.format(destination_mount, secret)
-
-
 def get_mount_version(source_mount):
     secret_backend_config=client.sys.read_mount_configuration(source_mount)
     if 'options' in secret_backend_config.keys():
@@ -69,17 +44,55 @@ def get_mount_version(source_mount):
     return secret_version
 
 
+def list_secrets_in_path(mount_version, source_mount, dir_in_mount, final_secrets_list):
+    if '1' in mount_version:
+        objects_in_path = client.secrets.kv.v1.list_secrets(path=dir_in_mount, mount_point=source_mount)['data']['keys']
+    else:
+        objects_in_path = client.secrets.kv.v2.list_secrets(path=dir_in_mount, mount_point=source_mount)['data']['keys']
+    for object in objects_in_path:
+        abs_path = '{}/{}'.format(dir_in_mount, object)
+        if object.endswith('/'):
+            list_secrets_in_path(mount_version, source_mount, abs_path.strip('/'), final_secrets_list)
+        else:
+            final_secrets_list.append('{}'.format(abs_path.lstrip('/')))
+#           NOTE: no need for the source_mount parameter here:
+#           final_secrets_list.append('{}/{}'.format(source_mount, abs_path.lstrip(('/'))))
+    return final_secrets_list
+
+
+def read_secret_from_original_mount(mount_version, source_mount, secret):
+    if '1' in mount_version:
+        read_secret_result = client.secrets.kv.v1.read_secret(mount_point=source_mount, path=secret)['data']
+    else:
+        read_secret_result = client.secrets.kv.v2.read_secret_version(mount_point=source_mount, path=secret)['data']['data']
+    return read_secret_result
+
+
+def write_secret_to_new_mount(destination_mount, secret, source_mount, mount_version, content):
+    print('Writing {} to {}/{}'.format(secret, destination_mount, source_mount))
+    if '1' in mount_version:
+        client.secrets.kv.v1.create_or_update_secret(mount_point=source_mount, path=secret, secret=content)
+        print('success')
+    else:
+        client.secrets.kv.v2.read_secret_version(mount_point=source_mount, path=secret)['data']['data']
+
+client.secrets.kv.v1.create_or_update_secret(path=destination_mount, secret=secret)
+    return 'Now Writing {}/{}'.format(destination_mount, secret)
+
+
 def main():
     source_mount = input("Enter the source mount:   ")
     destination_mount = input("Enter the destination mount:   ")
     mount_version = get_mount_version(source_mount)
     final_secrets_list = list()
-    original_mount_secrets = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
-    print(*original_mount_secrets, sep='\n')
-
-#    for secret in original_mount_secrets:
-#        write_secret_to_new_mount('{}/{}'.format(destination_mount, secret), read_secret_from_original_mount(secret))
-
+    secrets_list = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
+#    check here:
+#    print(*original_mount_secrets, sep='\n')
+    for secret in secrets_list:
+        content = read_secret_from_original_mount(mount_version, source_mount, secret)
+        write_secret_to_new_mount(destination_mount, secret, source_mount, mount_version, content), read_secret_from_original_mount(mount_version, source_mount, secret)
+#        print(read_response)
+#        write_secret_to_new_mount('{}/{}'.format(destination_mount, secret), read_secret_from_original_mount(mount_version, source_mount, secret))
 
 
 if __name__ == '__main__':
