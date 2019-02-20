@@ -36,11 +36,11 @@ client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["
 def get_mount_version(source_mount):
     secret_backend_config=client.sys.read_mount_configuration(source_mount)
     if 'options' in secret_backend_config.keys():
-        print('mount is v2')
-        secret_version='v2'
+        print('Analysis: mount is v2')
+        secret_version = 'v2'
     else:
-        secret_version='v1'
-        print('mount is v1')
+        secret_version = 'v1'
+        print('Analysis: mount is v1')
     return secret_version
 
 
@@ -78,12 +78,11 @@ def write_secret_to_new_mount(destination_mount, secret, mount_version, content)
 
 def init_destination_mount(source_mount, mount_version):
     ver = mount_version[1]
-    print('Going to create new mount:  deprecated/{} of version: {}'.format(source_mount, ver))
+    print('Going to create new mount:  deprecated/{} of version {}'.format(source_mount, ver))
     destination_mount = 'deprecated/{}'.format(source_mount)
     client.sys.enable_secrets_engine(backend_type='kv', path=destination_mount, options={
         "version": ver
     })
-    print('success')
     return destination_mount
 
 
@@ -93,10 +92,11 @@ def main():
     final_secrets_list = list()
     secrets_list = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
     destination_mount = init_destination_mount(source_mount, mount_version)
-    print('starting secrets copy')
+    print('Starting secrets copy from source mount')
     for secret in secrets_list:
         content = read_secret_from_original_mount(mount_version, source_mount, secret)
         write_secret_to_new_mount(destination_mount, secret, mount_version, content)
+    print('All done! secrets written to: {}'.format(destination_mount))
 
 
 if __name__ == '__main__':
