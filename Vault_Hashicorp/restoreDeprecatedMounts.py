@@ -44,16 +44,19 @@ def init_destination_mount(source_mount, mount_version):
     return destination
 
 
-def get_mount_version(source_mount):
-    secret_backend_config = client.sys.read_mount_configuration(source_mount)
-    mount_version = secret_backend_config['options']['version']
-    if mount_version == '2':
-        print('Analysis: mount is v2')
-        secret_version = 'v2'
+def get_mount_version(mount):
+    secret_backend_config = client.sys.read_mount_configuration(mount)
+    if 'options' in secret_backend_config:
+        if secret_backend_config['options']['version'] == '2':
+            print('Analysis: mount version is 2')
+            mount_ver = 'v2'
+        else:
+            mount_ver = 'v1'
+            print('Analysis: mount version is 1')
     else:
-        secret_version = 'v1'
-        print('Analysis: mount is v1')
-    return secret_version
+        mount_ver = 'v1'
+        print('Analysis: mount version is 1')
+    return mount_ver
 
 
 def list_secrets_in_path(mount_version, source_mount, dir_in_mount, final_secrets_list):

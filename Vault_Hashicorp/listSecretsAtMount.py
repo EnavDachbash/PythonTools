@@ -36,14 +36,17 @@ client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["
 # This function will determine the mount's version.
 def get_mount_version(mount):
     secret_backend_config = client.sys.read_mount_configuration(mount)
-    mount_version = secret_backend_config['options']['version']
-    if mount_version == '2':
-        print('Analysis: mount version is 2')
-        secret_version = 'v2'
+    if 'options' in secret_backend_config:
+        if secret_backend_config['options']['version'] == '2':
+            print('Analysis: mount version is 2')
+            mount_ver = 'v2'
+        else:
+            mount_ver = 'v1'
+            print('Analysis: mount version is 1')
     else:
-        secret_version = 'v1'
+        mount_ver = 'v1'
         print('Analysis: mount version is 1')
-    return secret_version
+    return mount_ver
 
 
 # This function will list all secrets in mount.
@@ -62,10 +65,10 @@ def list_secrets_in_path(mount_version, mount, dir_in_mount, final_secrets_list)
 
 
 def main():
-    mount = input("Enter the mount you wish to list: ")
-    mount_version = get_mount_version(mount)
+    source_mount = input("Enter the mount you wish to list: ")
+    mount_version = get_mount_version(source_mount)
     final_secrets_list = list()
-    original_mount_secrets = list_secrets_in_path(mount_version, mount, '', final_secrets_list)
+    original_mount_secrets = list_secrets_in_path(mount_version, source_mount, '', final_secrets_list)
     print('Total secrets at mount: {}'.format(len(original_mount_secrets)))
     print(*original_mount_secrets, sep="\n")
 
