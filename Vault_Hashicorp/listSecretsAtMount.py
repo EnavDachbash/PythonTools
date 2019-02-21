@@ -35,13 +35,14 @@ client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["
 
 # This function will determine the mount's version.
 def get_mount_version(mount):
-    secret_backend_config=client.sys.read_mount_configuration(mount)
-    if 'options' in secret_backend_config.keys():
-        print('mount version is 2')
-        secret_version='v2'
+    secret_backend_config = client.sys.read_mount_configuration(mount)
+    mount_version = secret_backend_config['options']['version']
+    if mount_version == '2':
+        print('Analysis: mount version is 2')
+        secret_version = 'v2'
     else:
-        secret_version='v1'
-        print('mount version is 1')
+        secret_version = 'v1'
+        print('Analysis: mount version is 1')
     return secret_version
 
 
@@ -65,6 +66,7 @@ def main():
     mount_version = get_mount_version(mount)
     final_secrets_list = list()
     original_mount_secrets = list_secrets_in_path(mount_version, mount, '', final_secrets_list)
+    print('Total secrets at mount: {}'.format(len(original_mount_secrets)))
     print(*original_mount_secrets, sep="\n")
 
 

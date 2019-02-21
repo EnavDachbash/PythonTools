@@ -34,8 +34,9 @@ client = hvac.Client(url='https://vault.dal.myhrtg.net:8200', token=os.environ["
 
 
 def get_mount_version(source_mount):
-    secret_backend_config=client.sys.read_mount_configuration(source_mount)
-    if 'options' in secret_backend_config.keys():
+    secret_backend_config = client.sys.read_mount_configuration(source_mount)
+    mount_version = secret_backend_config['options']['version']
+    if mount_version == '2':
         print('Analysis: mount is v2')
         secret_version = 'v2'
     else:
