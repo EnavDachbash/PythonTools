@@ -31,7 +31,7 @@ def main(host, cert):
     entry = crt_xml_ob.find(".//certificate/entry[@name='{}']/not-valid-after".format(cert))
     if entry.text:
         expiration = entry.text
-        return calc_days2expiration(expiration)
+        print(calc_days2expiration(expiration))
     else:
         print("something went wrong - no such certificate found")
         return 1
