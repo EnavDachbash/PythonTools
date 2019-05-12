@@ -53,13 +53,13 @@ def main():
     for node in hosts_dict:
         # retrieve key in str format
         key = "LUFRPT1aRTZ2VHFQamI0bDRWdEpQWnYwbEdWQzZWTTQ9YzEzT0hkdENlM1IvWDd1eHZBbHgrTWZuVTJJYS9qY04xcXJDZTZiRmI0WT0="
-        xml_result = requests.get("https://{}/api/?type=op&cmd=<show><config><merged></merged></config></show>&key={}".format(ip_addr, key), verify=False)
+        xml_result = requests.get("https://{}/api/?type=op&cmd=<show><config><merged></merged></config></show>&key={}".format(hosts_dict[node], key), verify=False)
         crt_xml_ob = ElementTree.fromstring(xml_result.content)
         crt_list = get_certificate_list(crt_xml_ob)
         for crt in crt_list:
             output_discovery['data'].append({'{#HOSTNAME}': node, '{#IPADDRESS}': hosts_dict[node], '{#CRTNAME}': crt})
     final_output = json.dumps(output_discovery)
-    print(final_output)
+    return final_output
 
 
 if __name__ == '__main__':
