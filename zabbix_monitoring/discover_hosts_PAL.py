@@ -59,7 +59,7 @@ def main():
         for crt in crt_list:
             output_discovery['data'].append({'{#HOSTNAME}': node, '{#IPADDRESS}': hosts_dict[node], '{#CRTNAME}': crt})
     final_output = json.dumps(output_discovery)
-    return final_output
+    print(final_output)
 
 
 if __name__ == '__main__':
