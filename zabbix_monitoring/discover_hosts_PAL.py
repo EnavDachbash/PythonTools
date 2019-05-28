@@ -15,6 +15,14 @@ urllib3.disable_warnings()
 # ================== END GLOBAL ================== #
 
 
+# Get key as string var
+def get_key_str(file_path):
+    with open(file_path, "r") as read_file:
+        data = json.load(read_file)
+    keystr = data["payload"]["key"]
+    return keystr
+
+
 # Get Hosts List + Their IP
 def get_hosts_list(xml_ob):
     hosts_dict = dict()
@@ -45,14 +53,14 @@ def get_certificate_list(crt_xml_ob):
 
 def main():
     xml_hosts_result = requests.get(
-        'https://pano.mhutils.com/api/?key=LUFRPT1oVGpkZDhuc211OUxvZmJDbzFOSnVxTmszWEE9YzEzT0hkdENlM1IvWDd1eHZBbHgrTXN1V0k3ODY3VDBObXRkR3VBOGtmND0=&type=op&cmd=<show><devices><all></all></devices></show>',
+        'https://pano.mhutils.com/api/?key={}&type=op&cmd=<show><devices><all></all></devices></show>'.format(
+            get_key_str("/Users/enav.hidekel/Documents/panorama_key.json")),
         verify=False)
     xml_ob = ElementTree.fromstring(xml_hosts_result.content)
     hosts_dict = get_hosts_list(xml_ob)
     output_discovery = {'data': []}
     for node in hosts_dict:
-        # retrieve key in str format
-        key = "LUFRPT1aRTZ2VHFQamI0bDRWdEpQWnYwbEdWQzZWTTQ9YzEzT0hkdENlM1IvWDd1eHZBbHgrTWZuVTJJYS9qY04xcXJDZTZiRmI0WT0="
+        key = get_key_str("/Users/enav.hidekel/Documents/dallas_key.json")
         xml_result = requests.get("https://{}/api/?type=op&cmd=<show><config><merged></merged></config></show>&key={}".format(hosts_dict[node], key), verify=False)
         crt_xml_ob = ElementTree.fromstring(xml_result.content)
         crt_list = get_certificate_list(crt_xml_ob)
