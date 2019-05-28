@@ -14,7 +14,15 @@ urllib3.disable_warnings()
 
 # ================== END GLOBAL ================== #
 
+# Get key as string var:
+def get_key_str(file_path):
+    with open(file_path, "r") as read_file:
+        data = json.load(read_file)
+    keystr = data["payload"]["key"]
+    return keystr
 
+
+# Get cert expiration:
 def calc_days2expiration(expiration):
     future = datetime.strptime(expiration, '%b %d %H:%M:%S %Y %Z').date()
     now = date.today()
@@ -23,7 +31,7 @@ def calc_days2expiration(expiration):
 
 
 def main(host, cert):
-    key = "LUFRPT1aRTZ2VHFQamI0bDRWdEpQWnYwbEdWQzZWTTQ9YzEzT0hkdENlM1IvWDd1eHZBbHgrTWZuVTJJYS9qY04xcXJDZTZiRmI0WT0="
+    key = get_key_str("/Users/enav.hidekel/Documents/dallas_key.json")
     xml_result = requests.get(
         "https://{}/api/?type=op&cmd=<show><config><merged></merged></config></show>&key={}".format(host, key),
         verify=False)
