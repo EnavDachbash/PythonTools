@@ -8,6 +8,8 @@ import requests
 import xml.etree.ElementTree as ElementTree
 import urllib3
 import json
+# for python2.7 support: from requests.packages.urllib3.exceptions import InsecureRequestWarning
+# requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 # Disable cert verification:
 urllib3.disable_warnings()
