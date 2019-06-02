@@ -4,14 +4,23 @@ __author__ = 'Enav Hidekel <enav.hidekel@gmail.com>'
 __creation_date__ = '12/05/19'
 
 """ This script will list all certificates in a Palo Alto FW. """
+
+"""for python 2.7 support:
+import datetime
+import time
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from datetime import date
+from datetime import datetime
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+"""
 import requests
 import xml.etree.ElementTree as ElementTree
 import urllib3
 import json
+import sys
 
 # Disable cert verification:
 urllib3.disable_warnings()
-
 # ================== END GLOBAL ================== #
 
 # Get key as string var:
@@ -28,7 +37,13 @@ def calc_days2expiration(expiration):
     now = date.today()
     diff = future - now
     return diff.days
-
+""" for python 2.7 support in this function:
+# Get cert expiration:
+def calc_days2expiration(expiration):
+    future = datetime.strptime(expiration, '%b %d %H:%M:%S %Y %Z')
+    now = datetime.combine(date.today(), datetime.min.time())
+    diff = future - now
+    return diff.days"""
 
 def main(host, cert):
     key = get_key_str("/Users/enav.hidekel/Documents/dallas_key.json")
@@ -46,4 +61,4 @@ def main(host, cert):
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1], sys.argv[2])
